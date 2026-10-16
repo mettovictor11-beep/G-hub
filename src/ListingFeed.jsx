@@ -53,21 +53,31 @@ function ListingFeed() {
     "Tangaza University",
   ];
 
-  const filteredListings = listings.filter((listing) => {
-    const matchesCategory =
-      categoryFilter === "All" ||
-      listing.category === categoryFilter;
+  
+const filteredListings = listings.filter((listing) => {
+  const search = searchTerm.trim().toLowerCase();
 
-    const matchesLocation =
-      locationFilter === "All" ||
-      listing.location === locationFilter;
+  const matchesSearch =
+    (listing.title || "").toLowerCase().includes(search) ||
+    (listing.description || "").toLowerCase().includes(search) ||
+    (listing.category || "").toLowerCase().includes(search);
 
-    return (
-      matchesCategory &&
-      matchesLocation &&
-      listing.status === "active"
-    );
-  });
+  const matchesCategory =
+    categoryFilter === "All" ||
+    listing.category === categoryFilter;
+
+  const matchesLocation =
+    locationFilter === "All" ||
+    listing.location === locationFilter;
+
+  return (
+    matchesSearch &&
+    matchesCategory &&
+    matchesLocation &&
+    listing.status === "active"
+  );
+});
+
 
   if (loading) {
     return <p>Loading listings...</p>;
@@ -76,6 +86,20 @@ function ListingFeed() {
   return (
     <section>
       <h2>Explore Listings</h2>
+      
+<input
+  type="search"
+  placeholder="Search phones, laptops, salons, houses..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  style={{
+    width: "100%",
+    maxWidth: "450px",
+    padding: "12px",
+    marginBottom: "16px",
+  }}
+/>
+
 
       <div>
         <label htmlFor="category-filter">Category: </label>
