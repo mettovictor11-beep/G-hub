@@ -1,0 +1,147 @@
+
+import { useEffect, useState } from "react";
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+} from "firebase/firestore";
+import { db } from "./firebase";
+
+function ListingFeed() {
+  const [listings, setListings] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [locationFilter, setLocationFilter] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const listingsQuery = query(
+      collection(db, "listings"),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribe = onSnapshot(
+      listingsQuery,
+      (snapshot) => {
+        setListings(
+          snapshot.docs.map((document) => ({
+            id: document.id,
+            ...document.data(),
+          }))
+        );
+        setLoading(false);
+        setError("");
+      },
+      (err) => {
+        setError(err.message);
+        setLoading(false);
+      }
+    );
+
+    return unsubscribe;
+  }, []);
+
+  const locations = [
+    "Gataka",
+    "Karen",
+    "Rongai",
+    "Cooperative University",
+    "CUEA",
+    "Multimedia University",
+    "Tangaza University",
+  ];
+
+  const filteredListings = listings.filter((listing) => {
+    const matchesCategory =
+      categoryFilter === "All" ||
+      listing.category === categoryFilter;
+
+    const matchesLocation =
+      locationFilter === "All" ||
+      listing.location === locationFilter;
+
+    return (
+      matchesCategory &&
+      matchesLocation &&
+      listing.status === "active"
+    );
+  });
+
+  if (loading) {
+    return <p>Loading listings...</p>;
+  }
+
+  return (
+    <section>
+      <h2>Explore Listings</h2>
+
+      <div>
+        <label htmlFor="category-filter">Category: </label>
+        <select
+          id="category-filter"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+        >
+          <option value="All">All categories</option>
+          <option>Phones & Accessories</option>
+          <option>Services & Beauty</option>
+          <option>Cars & Motorbikes</option>
+          <option>Clothing & Fashion</option>
+          <option>Houses & Rentals</option>
+          <option>Laptops & Electronics</option>
+          <option>Books & Campus Essentials</option>
+          <option>Furniture & Home</option>
+          <option>Food & Groceries</option>
+          <option>Other Items</option>
+        </select>
+
+        <label htmlFor="location-filter"> Location: </label>
+        <select
+          id="location-filter"
+          value={locationFilter}
+          onChange={(e) => setLocationFilter(e.target.value)}
+        >
+          <option value="All">All locations</option>
+          {locations.map((location) => (
+            <option key={location} value={location}>
+              {location}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {error && <p>Error loading listings: {error}</p>}
+
+      {!error && filteredListings.length === 0 && (
+        <p>No listings found. Try another category or location.</p>
+      )}
+
+      <div>
+        {filteredListings.map((listing) => (
+          <article
+            key={listing.id}
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+              padding: "16px",
+              marginTop: "12px",
+            }}
+          >
+            <h3>{listing.title}</h3>
+            <p>{listing.description}</p>
+            <strong>
+              KSh {Number(listing.price).toLocaleString("en-KE")}
+            </strong>
+            <p>Category: {listing.category}</p>
+            <p>Location: {listing.location}</p>
+            <p>Seller: {listing.sellerName}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default ListingFeed;
