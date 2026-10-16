@@ -78,6 +78,29 @@ const filteredListings = listings.filter((listing) => {
   );
 });
 
+function getWhatsAppLink(listing) {
+  let phone = (listing.sellerPhone || "").replace(/\D/g, "");
+
+  // Convert Kenyan numbers to international format.
+  if (phone.startsWith("0")) {
+    phone = "254" + phone.slice(1);
+  } else if (phone.startsWith("254")) {
+    // Already in international format.
+  } else {
+    return null;
+  }
+
+  // Kenyan mobile numbers have 12 digits in international format.
+  if (!/^254[17]\d{8}$/.test(phone)) {
+    return null;
+  }
+
+  const message = `Hi ${listing.sellerName || "there"}! I'm interested in your listing: ${listing.title}. Is it still available?`;
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}
+
+
 
   if (loading) {
     return <p>Loading listings...</p>;
@@ -161,6 +184,19 @@ const filteredListings = listings.filter((listing) => {
             <p>Category: {listing.category}</p>
             <p>Location: {listing.location}</p>
             <p>Seller: {listing.sellerName}</p>
+            
+{getWhatsAppLink(listing) ? (
+  <a
+    href={getWhatsAppLink(listing)}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <button type="button">Contact Seller on WhatsApp</button>
+  </a>
+) : (
+  <p>Seller WhatsApp number unavailable.</p>
+)}
+
           </article>
         ))}
       </div>

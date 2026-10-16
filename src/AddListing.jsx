@@ -11,6 +11,7 @@ function AddListing({ onListingAdded }) {
   const [location, setLocation] = useState("Gataka");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sellerPhone, setSellerPhone] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -43,6 +44,7 @@ function AddListing({ onListingAdded }) {
         sellerName: user.displayName || user.email,
         status: "active",
         createdAt: serverTimestamp(),
+        sellerPhone: sellerPhone.trim(),
       });
 
       setTitle("");
@@ -87,6 +89,17 @@ function AddListing({ onListingAdded }) {
           onChange={(e) => setPrice(e.target.value)}
           required
         />
+        
+<input
+  type="tel"
+  placeholder="WhatsApp number (e.g. 0712345678)"
+  value={sellerPhone}
+  onChange={(e) => setSellerPhone(e.target.value)}
+  pattern="^(?:\+?254|0)[17][0-9]{8}$"
+  title="Enter a valid Kenyan mobile number, e.g. 0712345678, 0112345678, or +254712345678"
+  required
+/>
+
 
       
 <select
