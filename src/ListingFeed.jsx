@@ -16,7 +16,7 @@ function ListingFeed() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedSellerId, setSelectedSellerId] = useState(null);
-  const [selectedSellerName, setSelectedSellerName] = useState("");
+  
 
   useEffect(() => {
     const listingsQuery = query(
@@ -105,23 +105,26 @@ function getWhatsAppLink(listing) {
 
 
   if (loading) {
-    return <p>Loading listings...</p>;
-  }
+  return <p>Loading listings...</p>;
+}
+
+if (selectedSellerId) {
+  return (
+    <SellerProfileView
+      sellerId={selectedSellerId}
+      onBack={() => setSelectedSellerId(null)}
+    />
+  );
+}
 
   return (
     <section>
       <h2>Explore Listings</h2>
-      if (selectedSellerId) {
-  return (
-    <SellerProfileView
-      sellerId={selectedSellerId}
-      onBack={() => {
-        setSelectedSellerId(null);
-        setSelectedSellerName("");
-      }}
-    />
-  );
-}
+      
+      
+  
+
+
       
 <input
   type="search"
@@ -196,7 +199,24 @@ function getWhatsAppLink(listing) {
             </strong>
             <p>Category: {listing.category}</p>
             <p>Location: {listing.location}</p>
-            <p>Seller: {listing.sellerName}</p>
+            <p>
+             Seller:{" "}
+            <button
+             type="button"
+             onClick={() => setSelectedSellerId(listing.sellerId)}
+             disabled={!listing.sellerId}
+             style={{
+             border: "none",
+             background: "none",
+              color: "blue",
+             textDecoration: "underline",
+              cursor: "pointer",
+             padding: 0,
+    }}
+  >
+    {listing.sellerName || "View seller"}
+  </button>
+</p>
             
 {getWhatsAppLink(listing) ? (
   <a
