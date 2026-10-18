@@ -1,4 +1,4 @@
-
+import SellerProfileView from "./SellerProfileView";
 import { useEffect, useState } from "react";
 import {
   collection,
@@ -15,6 +15,8 @@ function ListingFeed() {
   const [locationFilter, setLocationFilter] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedSellerId, setSelectedSellerId] = useState(null);
+  const [selectedSellerName, setSelectedSellerName] = useState("");
 
   useEffect(() => {
     const listingsQuery = query(
@@ -109,6 +111,17 @@ function getWhatsAppLink(listing) {
   return (
     <section>
       <h2>Explore Listings</h2>
+      if (selectedSellerId) {
+  return (
+    <SellerProfileView
+      sellerId={selectedSellerId}
+      onBack={() => {
+        setSelectedSellerId(null);
+        setSelectedSellerName("");
+      }}
+    />
+  );
+}
       
 <input
   type="search"
