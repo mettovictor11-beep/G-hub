@@ -7,6 +7,7 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import ListingDetails from "./ListingDetails";
 
 function ListingFeed() {
   const [listings, setListings] = useState([]);
@@ -16,6 +17,7 @@ function ListingFeed() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedSellerId, setSelectedSellerId] = useState(null);
+  const [selectedListingId, setSelectedListingId] = useState(null);
   
 
   useEffect(() => {
@@ -107,6 +109,18 @@ function getWhatsAppLink(listing) {
   if (loading) {
   return <p>Loading listings...</p>;
 }
+if (selectedListingId) {
+  return (
+    <ListingDetails
+      listingId={selectedListingId}
+      onBack={() => setSelectedListingId(null)}
+      onViewSeller={(sellerId) => {
+        setSelectedListingId(null);
+        setSelectedSellerId(sellerId);
+      }}
+    />
+  );
+}
 
 if (selectedSellerId) {
   return (
@@ -192,7 +206,23 @@ if (selectedSellerId) {
               marginTop: "12px",
             }}
           >
-            <h3>{listing.title}</h3>
+            <h3>
+  <button
+    type="button"
+    onClick={() => setSelectedListingId(listing.id)}
+    style={{
+      border: "none",
+      background: "none",
+      padding: 0,
+      fontSize: "inherit",
+      fontWeight: "bold",
+      cursor: "pointer",
+      textAlign: "left",
+    }}
+  >
+    {listing.title}
+  </button>
+</h3>
             <p>{listing.description}</p>
             <strong>
               KSh {Number(listing.price).toLocaleString("en-KE")}
