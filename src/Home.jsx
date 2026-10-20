@@ -1,12 +1,97 @@
 
+import { useEffect, useState } from "react";
+import {
+  collection,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+
+import { db } from "./firebase";
 import AddListing from "./AddListing";
 import ListingFeed from "./ListingFeed";
 import MyListings from "./MyListings";
 import SellerProfile from "./SellerProfile";
-import { useNavigate } from "react-router-dom";
 
 function Home({ user, onLogout }) {
   const navigate = useNavigate();
+
+  const [myListings, setMyListings] = useState([]);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState("");
+
+  useEffect(() => {
+    const uid = user?.uid;
+
+    if (!uid) {
+      setMyListings([]);
+      setDashboardLoading(false);
+      setDashboardError("");
+      return;
+    }
+
+    setDashboardLoading(true);
+
+    const listingsQuery = query(
+      collection(db, "listings"),
+      where("sellerId", "==", uid)
+    );
+
+    const unsubscribe = onSnapshot(
+      listingsQuery,
+      (snapshot) => {
+        setMyListings(
+          snapshot.docs.map((item) => ({
+            id: item.id,
+            ...item.data(),
+          }))
+        );
+        setDashboardError("");
+        setDashboardLoading(false);
+      },
+      (error) => {
+        setDashboardError(
+          `Could not load dashboard statistics: ${error.message}`
+        );
+        setDashboardLoading(false);
+      }
+    );
+
+    return unsubscribe;
+  }, [user?.uid]);
+
+  const totalListings = myListings.length;
+
+  // Listings without a status are treated as active for older records.
+  const activeListings = myListings.filter(
+    (listing) => !listing.status || listing.status === "active"
+  ).length;
+
+  const soldListings = myListings.filter(
+    (listing) => listing.status === "sold"
+  ).length;
+
+  const dashboardCards = [
+    {
+      title: "Total Listings",
+      value: totalListings,
+      description: "Products you've posted",
+      
+    },
+    {
+      title: "Active Listings",
+      value: activeListings,
+      description: "Available to buyers",
+      
+    },
+    {
+      title: "Sold Items",
+      value: soldListings,
+      description: "Items marked as sold",
+      
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -15,16 +100,19 @@ function Home({ user, onLogout }) {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <button
             type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            onClick={() =>
+              window.scrollTo({ top: 0, behavior: "smooth" })
+            }
             className="text-left text-2xl font-extrabold tracking-tight text-emerald-700"
           >
-            Gataka Connect
+            G-Hub Connect
           </button>
 
           <nav className="flex items-center gap-2 sm:gap-4">
             {user ? (
               <>
                 <button
+                  type="button"
                   onClick={() => navigate("/inbox")}
                   className="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
                 >
@@ -32,6 +120,7 @@ function Home({ user, onLogout }) {
                 </button>
 
                 <button
+                  type="button"
                   onClick={onLogout}
                   className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700"
                 >
@@ -40,6 +129,7 @@ function Home({ user, onLogout }) {
               </>
             ) : (
               <button
+                type="button"
                 onClick={() => navigate("/login")}
                 className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
               >
@@ -68,6 +158,7 @@ function Home({ user, onLogout }) {
 
           <div className="mt-7 flex flex-wrap gap-3">
             <button
+              type="button"
               onClick={() =>
                 document.getElementById("marketplace")?.scrollIntoView({
                   behavior: "smooth",
@@ -79,10 +170,13 @@ function Home({ user, onLogout }) {
             </button>
 
             <button
+              type="button"
               onClick={() =>
-                user ? document.getElementById("sell-item")?.scrollIntoView({
-                  behavior: "smooth",
-                }) : navigate("/login")
+                user
+                  ? document.getElementById("sell-item")?.scrollIntoView({
+                      behavior: "smooth",
+                    })
+                  : navigate("/login")
               }
               className="rounded-xl border border-emerald-300 px-5 py-3 font-bold text-white hover:bg-emerald-700"
             >
@@ -91,46 +185,88 @@ function Home({ user, onLogout }) {
           </div>
         </section>
 
-        {/* Account welcome */}
+        {/* Seller dashboard */}
         {user && (
-          <p className="mb-6 text-sm text-gray-600">
-            Welcome back,{" "}
-            <span className="font-semibold text-gray-900">
-              {user.displayName || user.email}
-            </span>
-          </p>
-        )}
+          <section id="sell-item" className="mb-12 scroll-mt-24">
+            <div className="mb-6">
+              <p className="text-sm font-semibold uppercase tracking-wider text-emerald-700">
+                Seller centre
+              </p>
 
-        {/* Selling tools for signed-in users */}
-        {user && (
-          <section id="sell-item" className="mb-10 space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold">Your marketplace</h2>
-              <p className="mt-1 text-gray-600">
-                Manage your seller profile and listings.
+              <h2 className="mt-1 text-2xl font-extrabold sm:text-3xl">
+                Your Seller Dashboard
+              </h2>
+
+              <p className="mt-2 text-gray-600">
+                Welcome back,{" "}
+                <span className="font-semibold text-gray-900">
+                  {user.displayName || user.email}
+                </span>
+                . Manage your profile and products in one place.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
+            {/* Live summary cards */}
+            <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {dashboardCards.map((card) => (
+                <div
+                  key={card.title}
+                  className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-6"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-gray-600">
+                      {card.title}
+                    </p>
+
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-xl">
+                      {card.icon}
+                    </span>
+                  </div>
+
+                  <p className="mt-4 text-3xl font-extrabold text-gray-900">
+                    {dashboardLoading ? "..." : card.value}
+                  </p>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    {card.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {dashboardError && (
+              <p
+                role="alert"
+                className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+              >
+                {dashboardError}
+              </p>
+            )}
+
+            {/* Seller profile */}
+            <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
               <SellerProfile />
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
+            {/* Add listing */}
+            <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
               <AddListing />
             </div>
 
+            {/* Manage listings */}
             <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
               <MyListings />
             </div>
           </section>
         )}
 
-        {/* Public listings */}
+        {/* Public marketplace */}
         <section id="marketplace" className="scroll-mt-24">
           <div className="mb-5">
             <h2 className="text-2xl font-bold sm:text-3xl">
               Explore the marketplace
             </h2>
+
             <p className="mt-2 text-gray-600">
               Find something useful or discover a service near you.
             </p>
@@ -143,7 +279,7 @@ function Home({ user, onLogout }) {
 
         {/* Footer */}
         <footer className="mt-14 border-t border-gray-200 py-6 text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} Gataka Connect. Connecting our community.
+          © {new Date().getFullYear()} G-Hub Connect. Connecting our community.
         </footer>
       </main>
     </div>
