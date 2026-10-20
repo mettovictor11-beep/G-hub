@@ -8,7 +8,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 
-function Inbox({ onOpenChat }) {
+function Inbox({ onBack, onOpenChat }) {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(Boolean(auth.currentUser));
   const [error, setError] = useState(
@@ -59,6 +59,9 @@ function Inbox({ onOpenChat }) {
 
   return (
     <section style={{ maxWidth: "800px", margin: "24px auto" }}>
+      <button type="button" onClick={onBack}>
+        ← Back to marketplace
+      </button>
       <h2>My Messages</h2>
 
       {error && <p role="alert">{error}</p>}

@@ -36,6 +36,7 @@ function InboxRoute() {
 
   return (
     <Inbox
+      onBack={() => navigate("/")}
       onOpenChat={({ conversationId, otherUserName }) => {
         navigate(`/chat/${conversationId}`, {
           state: { otherUserName },

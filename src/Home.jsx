@@ -17,9 +17,23 @@ import SellerProfile from "./SellerProfile";
 function Home({ user, onLogout }) {
   const navigate = useNavigate();
 
+  const [showSellerCenter, setShowSellerCenter] = useState(false);
   const [myListings, setMyListings] = useState([]);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState("");
+
+  useEffect(() => {
+    if (!user || !showSellerCenter) return undefined;
+
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("sell-item")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [user, showSellerCenter]);
 
   useEffect(() => {
     const uid = user?.uid;
@@ -172,11 +186,7 @@ function Home({ user, onLogout }) {
             <button
               type="button"
               onClick={() =>
-                user
-                  ? document.getElementById("sell-item")?.scrollIntoView({
-                      behavior: "smooth",
-                    })
-                  : navigate("/login")
+                user ? setShowSellerCenter(true) : navigate("/login")
               }
               className="rounded-xl border border-emerald-300 px-5 py-3 font-bold text-white hover:bg-emerald-700"
             >
@@ -186,24 +196,32 @@ function Home({ user, onLogout }) {
         </section>
 
         {/* Seller dashboard */}
-        {user && (
+        {user && showSellerCenter && (
           <section id="sell-item" className="mb-12 scroll-mt-24">
             <div className="mb-6">
-              <p className="text-sm font-semibold uppercase tracking-wider text-emerald-700">
-                Seller centre
-              </p>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-wider text-emerald-700">
+                    Seller centre
+                  </p>
 
-              <h2 className="mt-1 text-2xl font-extrabold sm:text-3xl">
-                Your Seller Dashboard
-              </h2>
+                  <h2 className="mt-1 text-2xl font-extrabold sm:text-3xl">
+                    Start selling
+                  </h2>
 
-              <p className="mt-2 text-gray-600">
-                Welcome back,{" "}
-                <span className="font-semibold text-gray-900">
-                  {user.displayName || user.email}
-                </span>
-                . Manage your profile and products in one place.
-              </p>
+                  <p className="mt-2 text-gray-600">
+                    Set up your seller profile, then list your items.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowSellerCenter(false)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-white"
+                >
+                  Back to marketplace
+                </button>
+              </div>
             </div>
 
             {/* Live summary cards */}

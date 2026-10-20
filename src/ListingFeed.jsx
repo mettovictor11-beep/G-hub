@@ -341,12 +341,10 @@ function ListingFeed({ user }) {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => {
-                        window.location.href = "/login";
-                      }}
-                      className="w-full rounded-xl bg-emerald-700 px-3 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-800"
+                      onClick={() => setSelectedListingId(listing.id)}
+                      className="w-full rounded-xl border border-emerald-700 px-3 py-2.5 text-sm font-bold text-emerald-800 transition hover:bg-emerald-50"
                     >
-                      Sign in to contact seller
+                      View product
                     </button>
                   )}
                 </div>
