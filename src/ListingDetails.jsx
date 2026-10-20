@@ -2,11 +2,16 @@
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "./firebase";
+import { useNavigate } from "react-router-dom";
+import { startConversation } from "./chatService";
 
 function ListingDetails({ listingId, onBack, onViewSeller }) {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+const [chatError, setChatError] = useState("");
+const [startingChat, setStartingChat] = useState(false);
 
   useEffect(() => {
     async function loadListing() {
@@ -69,6 +74,24 @@ function ListingDetails({ listingId, onBack, onViewSeller }) {
   }
 
   const whatsappLink = getWhatsAppLink();
+  async function handleMessageSeller() {
+  setStartingChat(true);
+  setChatError("");
+
+  try {
+    const conversationId = await startConversation(listing);
+
+    navigate(`/chat/${conversationId}`, {
+      state: {
+        otherUserName: listing.sellerName || "Seller",
+      },
+    });
+  } catch (err) {
+    setChatError(err.message || "Could not start the conversation.");
+  } finally {
+    setStartingChat(false);
+  }
+}
 
   return (
     <section
@@ -113,6 +136,19 @@ function ListingDetails({ listingId, onBack, onViewSeller }) {
           View Seller Profile
         </button>
       )}
+      {listing.sellerId && (
+  <>
+    <button
+      type="button"
+      onClick={handleMessageSeller}
+      disabled={startingChat}
+    >
+      {startingChat ? "Opening chat..." : "Message Seller"}
+    </button>
+
+    {chatError && <p role="alert">{chatError}</p>}
+  </>
+)}
 
       {whatsappLink ? (
         <p>

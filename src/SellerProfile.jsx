@@ -133,8 +133,8 @@ function SellerProfile() {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="e.g. 0712345678"
-          pattern="^(?:\\+?254|0)7\\d{8}$|^(?:\\+?254|0)1\\d{8}$"
-          title="Enter a valid Kenyan mobile number"
+          pattern="^(?:\+?254|0)[17][0-9]{8}$"
+          title="Enter a valid Kenyan mobile number, e.g. 0712345678, 0112345678, or +254712345678"
           required
         />
 
@@ -149,3 +149,4 @@ function SellerProfile() {
 }
 
 export default SellerProfile;
+ 
