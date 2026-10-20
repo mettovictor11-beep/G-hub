@@ -8,6 +8,7 @@ import {
   useParams,
   useLocation,
   useNavigate,
+  Navigate,
 } from "react-router-dom";
 
 import { auth } from "./firebase";
@@ -30,7 +31,6 @@ function ChatRoute() {
   );
 }
 
-
 function InboxRoute() {
   const navigate = useNavigate();
 
@@ -48,6 +48,7 @@ function InboxRoute() {
 function AppContent() {
   const [user, setUser] = useState(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -66,27 +67,45 @@ function AppContent() {
     return <p>Loading Gataka Connect...</p>;
   }
 
-  if (!user) {
-    return <Auth />;
+
+  const requiresLogin =
+  location.pathname === "/inbox" ||
+  location.pathname.startsWith("/chat/");
+
+  if (!user && requiresLogin) {
+    return (
+      <Auth />
+    );
   }
 
   return (
+  
     <Routes>
-  <Route
-    path="/chat/:conversationId"
-    element={<ChatRoute />}
-  />
+      <Route
+        path="/chat/:conversationId"
+        element={<ChatRoute />}
+      />
 
-  <Route
-    path="/inbox"
-    element={<InboxRoute />}
-  />
+      <Route
+  path="/login"
+  element={user ? <Navigate to="/" replace /> : <Auth />}
+/>
 
-  <Route
-    path="*"
-    element={<Home user={user} onLogout={handleLogout} />}
-  />
-</Routes>
+      <Route
+        path="/inbox"
+        element={<InboxRoute />}
+      />
+
+      <Route
+        path="*"
+        element={
+          <Home
+            user={user}
+            onLogout={handleLogout}
+          />
+        }
+      />
+    </Routes>
   );
 }
 

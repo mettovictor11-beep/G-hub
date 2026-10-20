@@ -9,7 +9,7 @@ import {
 import { db } from "./firebase";
 import ListingDetails from "./ListingDetails";
 
-function ListingFeed() {
+function ListingFeed({ user })  {
   const [listings, setListings] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -136,9 +136,6 @@ if (selectedSellerId) {
       <h2>Explore Listings</h2>
       
       
-  
-
-
       
 <input
   type="search"
@@ -260,16 +257,29 @@ if (selectedSellerId) {
   </button>
 </p>
             
-{getWhatsAppLink(listing) ? (
-  <a
-    href={getWhatsAppLink(listing)}
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    <button type="button">Contact Seller on WhatsApp</button>
-  </a>
+{user ? (
+  getWhatsAppLink(listing) ? (
+    <a
+      href={getWhatsAppLink(listing)}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <button type="button">
+        Contact Seller on WhatsApp
+      </button>
+    </a>
+  ) : (
+    <p>Seller WhatsApp number unavailable.</p>
+  )
 ) : (
-  <p>Seller WhatsApp number unavailable.</p>
+  <button
+    type="button"
+    onClick={() => {
+      window.location.href = "/login";
+    }}
+  >
+    Sign in to Contact Seller
+  </button>
 )}
 
           </article>
