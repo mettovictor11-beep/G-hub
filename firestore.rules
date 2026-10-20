@@ -6,7 +6,21 @@ service cloud.firestore {
       allow read: if request.auth != null;
 
       allow create: if request.auth != null
-        && request.resource.data.sellerId == request.auth.uid;
+        && request.resource.data.sellerId == request.auth.uid
+        && request.resource.data.imageUrls is list
+        && request.resource.data.imageUrls.size() <= 3
+        && (
+          request.resource.data.imageUrls.size() < 1
+          || validListingImage(request.resource.data.imageUrls[0])
+        )
+        && (
+          request.resource.data.imageUrls.size() < 2
+          || validListingImage(request.resource.data.imageUrls[1])
+        )
+        && (
+          request.resource.data.imageUrls.size() < 3
+          || validListingImage(request.resource.data.imageUrls[2])
+        );
 
       allow update: if request.auth != null
         && resource.data.sellerId == request.auth.uid
@@ -14,6 +28,12 @@ service cloud.firestore {
 
       allow delete: if request.auth != null
         && resource.data.sellerId == request.auth.uid;
+
+      function validListingImage(imageUrl) {
+        return imageUrl is string
+          && imageUrl.size() <= 240000
+          && imageUrl.matches('data:image/jpeg;base64,.*');
+      }
     }
 
     match /profiles/{userId} {

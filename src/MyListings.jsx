@@ -220,6 +220,23 @@ function MyListings() {
             </form>
           ) : (
             <>
+              {listing.imageUrls?.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {listing.imageUrls.map((imageUrl, index) => (
+                    <img
+                      key={imageUrl}
+                      src={imageUrl}
+                      alt={`${listing.title} photo ${index + 1}`}
+                      style={{
+                        width: "120px",
+                        height: "100px",
+                        objectFit: "cover",
+                        borderRadius: "6px",
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
               <h3>{listing.title}</h3>
               <p>{listing.description}</p>
               <strong>

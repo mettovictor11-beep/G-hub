@@ -14,6 +14,7 @@ import { auth } from "./firebase";
 import Auth from "./Auth";
 import Home from "./Home";
 import Chat from "./Chat";
+import Inbox from "./Inbox";
 
 function ChatRoute() {
   const { conversationId } = useParams();
@@ -25,6 +26,21 @@ function ChatRoute() {
       conversationId={conversationId}
       otherUserName={location.state?.otherUserName || "seller"}
       onBack={() => navigate(-1)}
+    />
+  );
+}
+
+
+function InboxRoute() {
+  const navigate = useNavigate();
+
+  return (
+    <Inbox
+      onOpenChat={({ conversationId, otherUserName }) => {
+        navigate(`/chat/${conversationId}`, {
+          state: { otherUserName },
+        });
+      }}
     />
   );
 }
@@ -56,16 +72,21 @@ function AppContent() {
 
   return (
     <Routes>
-      <Route
-        path="/chat/:conversationId"
-        element={<ChatRoute />}
-      />
+  <Route
+    path="/chat/:conversationId"
+    element={<ChatRoute />}
+  />
 
-      <Route
-        path="*"
-        element={<Home user={user} onLogout={handleLogout} />}
-      />
-    </Routes>
+  <Route
+    path="/inbox"
+    element={<InboxRoute />}
+  />
+
+  <Route
+    path="*"
+    element={<Home user={user} onLogout={handleLogout} />}
+  />
+</Routes>
   );
 }
 

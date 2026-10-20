@@ -146,6 +146,19 @@ function SellerProfileView({ sellerId, onBack }) {
         <div>
           {listings.map((listing) => (
             <article key={listing.id}>
+              {listing.imageUrls?.[0] && (
+                <img
+                  src={listing.imageUrls[0]}
+                  alt={listing.title}
+                  style={{
+                    width: "100%",
+                    maxWidth: "320px",
+                    maxHeight: "220px",
+                    objectFit: "cover",
+                    borderRadius: "8px",
+                  }}
+                />
+              )}
               <h4>{listing.title}</h4>
               <p>{listing.description}</p>
               <p>

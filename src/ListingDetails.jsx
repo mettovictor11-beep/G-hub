@@ -109,6 +109,31 @@ const [startingChat, setStartingChat] = useState(false);
 
       <h1>{listing.title}</h1>
 
+      {listing.imageUrls?.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "12px",
+            margin: "16px 0",
+          }}
+        >
+          {listing.imageUrls.map((imageUrl, index) => (
+            <img
+              key={imageUrl}
+              src={imageUrl}
+              alt={`${listing.title} photo ${index + 1}`}
+              style={{
+                width: "min(100%, 320px)",
+                maxHeight: "320px",
+                objectFit: "cover",
+                borderRadius: "8px",
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       <h2>
         KSh {Number(listing.price).toLocaleString("en-KE")}
       </h2>

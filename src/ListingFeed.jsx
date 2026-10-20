@@ -206,6 +206,18 @@ if (selectedSellerId) {
               marginTop: "12px",
             }}
           >
+            {listing.imageUrls?.length > 0 && (
+              <img
+                src={listing.imageUrls[0]}
+                alt={listing.title}
+                style={{
+                  width: "100%",
+                  maxHeight: "240px",
+                  objectFit: "cover",
+                  borderRadius: "8px",
+                }}
+              />
+            )}
             <h3>
   <button
     type="button"
