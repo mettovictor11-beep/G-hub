@@ -10,7 +10,7 @@ import {
 import { db } from "./firebase";
 import ListingDetails from "./ListingDetails";
 
-function ListingFeed({ user }) {
+function ListingFeed({ user, initialListingId = null }) {
   const [listings, setListings] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -18,7 +18,7 @@ function ListingFeed({ user }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedSellerId, setSelectedSellerId] = useState(null);
-  const [selectedListingId, setSelectedListingId] = useState(null);
+  const [selectedListingId, setSelectedListingId] = useState(initialListingId);
 
   useEffect(() => {
     const listingsQuery = query(
@@ -122,6 +122,7 @@ function ListingFeed({ user }) {
     return (
       <ListingDetails
         listingId={selectedListingId}
+        user={user}
         onBack={() => setSelectedListingId(null)}
         onViewSeller={(sellerId) => {
           setSelectedListingId(null);

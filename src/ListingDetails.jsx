@@ -5,7 +5,7 @@ import { db } from "./firebase";
 import { useNavigate } from "react-router-dom";
 import { startConversation } from "./chatService";
 
-function ListingDetails({ listingId, onBack, onViewSeller }) {
+function ListingDetails({ listingId, user, onBack, onViewSeller }) {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -93,6 +93,13 @@ function ListingDetails({ listingId, onBack, onViewSeller }) {
   }
 
   async function handleMessageSeller() {
+    if (!user) {
+      navigate("/login", {
+        state: { returnListingId: listing.id },
+      });
+      return;
+    }
+
     setStartingChat(true);
     setChatError("");
 
@@ -216,7 +223,11 @@ function ListingDetails({ listingId, onBack, onViewSeller }) {
                   disabled={startingChat}
                   className="w-full rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {startingChat ? "Opening chat..." : "Message Seller"}
+                  {startingChat
+                    ? "Opening chat..."
+                    : user
+                      ? "Message Seller"
+                      : "Sign in or register to message seller"}
                 </button>
               </>
             )}

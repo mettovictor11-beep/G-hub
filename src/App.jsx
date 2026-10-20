@@ -89,7 +89,21 @@ function AppContent() {
 
       <Route
   path="/login"
-  element={user ? <Navigate to="/" replace /> : <Auth />}
+  element={
+    user ? (
+      <Navigate
+        to="/"
+        replace
+        state={
+          location.state?.returnListingId
+            ? { listingId: location.state.returnListingId }
+            : undefined
+        }
+      />
+    ) : (
+      <Auth />
+    )
+  }
 />
 
       <Route

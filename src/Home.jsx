@@ -6,7 +6,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { db } from "./firebase";
 import AddListing from "./AddListing";
@@ -16,6 +16,7 @@ import SellerProfile from "./SellerProfile";
 
 function Home({ user, onLogout }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [showSellerCenter, setShowSellerCenter] = useState(false);
   const [myListings, setMyListings] = useState([]);
@@ -291,7 +292,10 @@ function Home({ user, onLogout }) {
           </div>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
-            <ListingFeed user={user} />
+            <ListingFeed
+              user={user}
+              initialListingId={location.state?.listingId}
+            />
           </div>
         </section>
 
