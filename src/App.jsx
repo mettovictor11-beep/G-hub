@@ -64,7 +64,7 @@ function AppContent() {
   }
 
   if (checkingAuth) {
-    return <p>Loading Gataka Connect...</p>;
+    return <p>Loading G-Hub Connect...</p>;
   }
 
 

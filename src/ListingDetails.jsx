@@ -9,9 +9,11 @@ function ListingDetails({ listingId, onBack, onViewSeller }) {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [chatError, setChatError] = useState("");
+  const [startingChat, setStartingChat] = useState(false);
+
   const navigate = useNavigate();
-const [chatError, setChatError] = useState("");
-const [startingChat, setStartingChat] = useState(false);
 
   useEffect(() => {
     async function loadListing() {
@@ -20,6 +22,10 @@ const [startingChat, setStartingChat] = useState(false);
         setLoading(false);
         return;
       }
+
+      setLoading(true);
+      setError("");
+      setSelectedImage(0);
 
       try {
         const listingRef = doc(db, "listings", listingId);
@@ -32,6 +38,7 @@ const [startingChat, setStartingChat] = useState(false);
           });
         } else {
           setError("This listing does not exist.");
+          setListing(null);
         }
       } catch (err) {
         console.error(err);
@@ -45,17 +52,29 @@ const [startingChat, setStartingChat] = useState(false);
   }, [listingId]);
 
   if (loading) {
-    return <p>Loading listing details...</p>;
+    return <p className="p-6 text-gray-600">Loading listing details...</p>;
   }
 
   if (error || !listing) {
     return (
-      <section>
-        <p>{error || "Listing not found."}</p>
-        <button onClick={onBack}>Back to listings</button>
+      <section className="mx-auto max-w-4xl p-6">
+        <p className="mb-4 text-red-600">
+          {error || "Listing not found."}
+        </p>
+        <button
+          type="button"
+          onClick={onBack}
+          className="rounded-lg bg-gray-900 px-4 py-2 font-semibold text-white"
+        >
+          Back to listings
+        </button>
       </section>
     );
   }
+
+  const images = Array.isArray(listing.imageUrls)
+    ? listing.imageUrls.filter(Boolean)
+    : [];
 
   function getWhatsAppLink() {
     let phone = (listing.sellerPhone || "").replace(/\D/g, "");
@@ -73,123 +92,158 @@ const [startingChat, setStartingChat] = useState(false);
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   }
 
-  const whatsappLink = getWhatsAppLink();
   async function handleMessageSeller() {
-  setStartingChat(true);
-  setChatError("");
+    setStartingChat(true);
+    setChatError("");
 
-  try {
-    const conversationId = await startConversation(listing);
+    try {
+      const conversationId = await startConversation(listing);
 
-    navigate(`/chat/${conversationId}`, {
-      state: {
-        otherUserName: listing.sellerName || "Seller",
-      },
-    });
-  } catch (err) {
-    setChatError(err.message || "Could not start the conversation.");
-  } finally {
-    setStartingChat(false);
+      navigate(`/chat/${conversationId}`, {
+        state: {
+          otherUserName: listing.sellerName || "Seller",
+        },
+      });
+    } catch (err) {
+      setChatError(err.message || "Could not start the conversation.");
+    } finally {
+      setStartingChat(false);
+    }
   }
-}
+
+  const whatsappLink = getWhatsAppLink();
 
   return (
-    <section
-      style={{
-        maxWidth: "800px",
-        margin: "24px auto",
-        padding: "20px",
-        border: "1px solid #ddd",
-        borderRadius: "12px",
-      }}
-    >
-      <button type="button" onClick={onBack}>
+    <section className="mx-auto my-6 max-w-5xl rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-8">
+      <button
+        type="button"
+        onClick={onBack}
+        className="mb-6 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+      >
         ← Back to listings
       </button>
 
-      <h1>{listing.title}</h1>
+      <div className="grid gap-8 md:grid-cols-2">
+        <div>
+          {images.length > 0 ? (
+            <>
+              <div className="flex h-72 items-center justify-center overflow-hidden rounded-2xl bg-gray-100 sm:h-96">
+                <img
+                  src={images[selectedImage]}
+                  alt={`${listing.title} photo ${selectedImage + 1}`}
+                  className="h-full w-full object-contain"
+                />
+              </div>
 
-      {listing.imageUrls?.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "12px",
-            margin: "16px 0",
-          }}
-        >
-          {listing.imageUrls.map((imageUrl, index) => (
-            <img
-              key={imageUrl}
-              src={imageUrl}
-              alt={`${listing.title} photo ${index + 1}`}
-              style={{
-                width: "min(100%, 320px)",
-                maxHeight: "320px",
-                objectFit: "cover",
-                borderRadius: "8px",
-              }}
-            />
-          ))}
+              {images.length > 1 && (
+                <div className="mt-3 grid grid-cols-3 gap-3">
+                  {images.map((imageUrl, index) => (
+                    <button
+                      key={`${imageUrl}-${index}`}
+                      type="button"
+                      onClick={() => setSelectedImage(index)}
+                      aria-label={`View photo ${index + 1}`}
+                      aria-pressed={selectedImage === index}
+                      className={`overflow-hidden rounded-xl border-2 bg-gray-50 ${
+                        selectedImage === index
+                          ? "border-emerald-600"
+                          : "border-gray-200 hover:border-emerald-300"
+                      }`}
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`${listing.title} thumbnail ${index + 1}`}
+                        className="h-24 w-full object-cover sm:h-28"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex h-72 items-center justify-center rounded-2xl bg-gray-100 text-gray-500">
+              No photos available
+            </div>
+          )}
         </div>
-      )}
 
-      <h2>
-        KSh {Number(listing.price).toLocaleString("en-KE")}
-      </h2>
+        <div>
+          <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-emerald-700">
+            {listing.category || "Marketplace listing"}
+          </p>
 
-      <p>{listing.description}</p>
+          <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">
+            {listing.title}
+          </h1>
 
-      <p>
-        <strong>Category:</strong> {listing.category}
-      </p>
+          <p className="mt-4 text-3xl font-extrabold text-emerald-700">
+            KSh {Number(listing.price).toLocaleString("en-KE")}
+          </p>
 
-      <p>
-        <strong>Location:</strong> {listing.location}
-      </p>
+          <div className="my-6 border-t border-gray-200" />
 
-      <p>
-        <strong>Seller:</strong>{" "}
-        {listing.sellerName || "Gataka Connect Seller"}
-      </p>
+          <h2 className="mb-2 text-lg font-bold text-gray-900">
+            Description
+          </h2>
+          <p className="whitespace-pre-wrap leading-7 text-gray-600">
+            {listing.description || "No description provided."}
+          </p>
 
-      {listing.sellerId && (
-        <button
-          type="button"
-          onClick={() => onViewSeller(listing.sellerId)}
-        >
-          View Seller Profile
-        </button>
-      )}
-      {listing.sellerId && (
-  <>
-    <button
-      type="button"
-      onClick={handleMessageSeller}
-      disabled={startingChat}
-    >
-      {startingChat ? "Opening chat..." : "Message Seller"}
-    </button>
+          <div className="mt-6 space-y-3 text-sm text-gray-700">
+            <p>
+              <strong>Location:</strong> {listing.location || "Not specified"}
+            </p>
+            <p>
+              <strong>Seller:</strong>{" "}
+              {listing.sellerName || "Gataka Connect Seller"}
+            </p>
+          </div>
 
-    {chatError && <p role="alert">{chatError}</p>}
-  </>
-)}
+          <div className="mt-7 flex flex-col gap-3">
+            {listing.sellerId && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onViewSeller(listing.sellerId)}
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 font-semibold text-gray-800 hover:bg-gray-50"
+                >
+                  View Seller Profile
+                </button>
 
-      {whatsappLink ? (
-        <p>
-          <a
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <button type="button">
-              Contact Seller on WhatsApp
-            </button>
-          </a>
-        </p>
-      ) : (
-        <p>Seller WhatsApp number unavailable.</p>
-      )}
+                <button
+                  type="button"
+                  onClick={handleMessageSeller}
+                  disabled={startingChat}
+                  className="w-full rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {startingChat ? "Opening chat..." : "Message Seller"}
+                </button>
+              </>
+            )}
+
+            {chatError && (
+              <p role="alert" className="text-sm text-red-600">
+                {chatError}
+              </p>
+            )}
+
+            {whatsappLink ? (
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full rounded-xl border border-green-600 px-4 py-3 text-center font-bold text-green-700 hover:bg-green-50"
+              >
+                Contact Seller on WhatsApp
+              </a>
+            ) : (
+              <p className="text-sm text-gray-500">
+                Seller WhatsApp number unavailable.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

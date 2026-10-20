@@ -1,3 +1,4 @@
+
 import SellerProfileView from "./SellerProfileView";
 import { useEffect, useState } from "react";
 import {
@@ -9,7 +10,7 @@ import {
 import { db } from "./firebase";
 import ListingDetails from "./ListingDetails";
 
-function ListingFeed({ user })  {
+function ListingFeed({ user }) {
   const [listings, setListings] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -18,7 +19,6 @@ function ListingFeed({ user })  {
   const [error, setError] = useState("");
   const [selectedSellerId, setSelectedSellerId] = useState(null);
   const [selectedListingId, setSelectedListingId] = useState(null);
-  
 
   useEffect(() => {
     const listingsQuery = query(
@@ -57,233 +57,303 @@ function ListingFeed({ user })  {
     "Tangaza University",
   ];
 
-  
-const filteredListings = listings.filter((listing) => {
-  const search = searchTerm.trim().toLowerCase();
+  const categories = [
+    "Phones & Accessories",
+    "Services & Beauty",
+    "Cars & Motorbikes",
+    "Clothing & Fashion",
+    "Houses & Rentals",
+    "Laptops & Electronics",
+    "Books & Campus Essentials",
+    "Furniture & Home",
+    "Food & Groceries",
+    "Other Items",
+  ];
 
-  const matchesSearch =
-    (listing.title || "").toLowerCase().includes(search) ||
-    (listing.description || "").toLowerCase().includes(search) ||
-    (listing.category || "").toLowerCase().includes(search);
+  const filteredListings = listings.filter((listing) => {
+    const search = searchTerm.trim().toLowerCase();
 
-  const matchesCategory =
-    categoryFilter === "All" ||
-    listing.category === categoryFilter;
+    const matchesSearch =
+      (listing.title || "").toLowerCase().includes(search) ||
+      (listing.description || "").toLowerCase().includes(search) ||
+      (listing.category || "").toLowerCase().includes(search);
 
-  const matchesLocation =
-    locationFilter === "All" ||
-    listing.location === locationFilter;
+    const matchesCategory =
+      categoryFilter === "All" ||
+      listing.category === categoryFilter;
 
-  return (
-    matchesSearch &&
-    matchesCategory &&
-    matchesLocation &&
-    listing.status === "active"
-  );
-});
+    const matchesLocation =
+      locationFilter === "All" ||
+      listing.location === locationFilter;
 
-function getWhatsAppLink(listing) {
-  let phone = (listing.sellerPhone || "").replace(/\D/g, "");
+    return (
+      matchesSearch &&
+      matchesCategory &&
+      matchesLocation &&
+      listing.status === "active"
+    );
+  });
 
-  // Convert Kenyan numbers to international format.
-  if (phone.startsWith("0")) {
-    phone = "254" + phone.slice(1);
-  } else if (phone.startsWith("254")) {
-    // Already in international format.
-  } else {
-    return null;
+  function getWhatsAppLink(listing) {
+    let phone = (listing.sellerPhone || "").replace(/\D/g, "");
+
+    if (phone.startsWith("0")) {
+      phone = "254" + phone.slice(1);
+    }
+
+    if (!/^254[17]\d{8}$/.test(phone)) {
+      return null;
+    }
+
+    const message = `Hi ${listing.sellerName || "there"}! I'm interested in your listing: ${listing.title}. Is it still available?`;
+
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   }
-
-  // Kenyan mobile numbers have 12 digits in international format.
-  if (!/^254[17]\d{8}$/.test(phone)) {
-    return null;
-  }
-
-  const message = `Hi ${listing.sellerName || "there"}! I'm interested in your listing: ${listing.title}. Is it still available?`;
-
-  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-}
-
-
 
   if (loading) {
-  return <p>Loading listings...</p>;
-}
-if (selectedListingId) {
-  return (
-    <ListingDetails
-      listingId={selectedListingId}
-      onBack={() => setSelectedListingId(null)}
-      onViewSeller={(sellerId) => {
-        setSelectedListingId(null);
-        setSelectedSellerId(sellerId);
-      }}
-    />
-  );
-}
+    return (
+      <div className="py-12 text-center text-gray-500">
+        Loading listings...
+      </div>
+    );
+  }
 
-if (selectedSellerId) {
-  return (
-    <SellerProfileView
-      sellerId={selectedSellerId}
-      onBack={() => setSelectedSellerId(null)}
-    />
-  );
-}
+  if (selectedListingId) {
+    return (
+      <ListingDetails
+        listingId={selectedListingId}
+        onBack={() => setSelectedListingId(null)}
+        onViewSeller={(sellerId) => {
+          setSelectedListingId(null);
+          setSelectedSellerId(sellerId);
+        }}
+      />
+    );
+  }
+
+  if (selectedSellerId) {
+    return (
+      <SellerProfileView
+        sellerId={selectedSellerId}
+        onBack={() => setSelectedSellerId(null)}
+      />
+    );
+  }
 
   return (
     <section>
-      <h2>Explore Listings</h2>
-      
-      
-      
-<input
-  type="search"
-  placeholder="Search phones, laptops, salons, houses..."
-  value={searchTerm}
-  onChange={(e) => setSearchTerm(e.target.value)}
-  style={{
-    width: "100%",
-    maxWidth: "450px",
-    padding: "12px",
-    marginBottom: "16px",
-  }}
-/>
-
-
-      <div>
-        <label htmlFor="category-filter">Category: </label>
-        <select
-          id="category-filter"
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-        >
-          <option value="All">All categories</option>
-          <option>Phones & Accessories</option>
-          <option>Services & Beauty</option>
-          <option>Cars & Motorbikes</option>
-          <option>Clothing & Fashion</option>
-          <option>Houses & Rentals</option>
-          <option>Laptops & Electronics</option>
-          <option>Books & Campus Essentials</option>
-          <option>Furniture & Home</option>
-          <option>Food & Groceries</option>
-          <option>Other Items</option>
-        </select>
-
-        <label htmlFor="location-filter"> Location: </label>
-        <select
-          id="location-filter"
-          value={locationFilter}
-          onChange={(e) => setLocationFilter(e.target.value)}
-        >
-          <option value="All">All locations</option>
-          {locations.map((location) => (
-            <option key={location} value={location}>
-              {location}
-            </option>
-          ))}
-        </select>
+      <div className="mb-6">
+        <h2 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">
+          Explore the marketplace
+        </h2>
+        <p className="mt-2 text-sm text-gray-500">
+          Discover products and services in your community.
+        </p>
       </div>
 
-      {error && <p>Error loading listings: {error}</p>}
+      <div className="mb-7 rounded-2xl border border-gray-200 bg-gray-50 p-4 sm:p-5">
+        <div className="mb-4">
+          <label
+            htmlFor="listing-search"
+            className="mb-2 block text-sm font-semibold text-gray-700"
+          >
+            Search listings
+          </label>
+          <input
+            id="listing-search"
+            type="search"
+            placeholder="Search phones, laptops, clothes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+          />
+        </div>
 
-      {!error && filteredListings.length === 0 && (
-        <p>No listings found. Try another category or location.</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label
+              htmlFor="category-filter"
+              className="mb-2 block text-sm font-semibold text-gray-700"
+            >
+              Category
+            </label>
+            <select
+              id="category-filter"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-gray-800 outline-none focus:border-emerald-600"
+            >
+              <option value="All">All categories</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="location-filter"
+              className="mb-2 block text-sm font-semibold text-gray-700"
+            >
+              Location
+            </label>
+            <select
+              id="location-filter"
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-gray-800 outline-none focus:border-emerald-600"
+            >
+              <option value="All">All locations</option>
+              {locations.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-gray-500">
+            {filteredListings.length}{" "}
+            {filteredListings.length === 1 ? "listing" : "listings"} found
+          </p>
+
+          {(searchTerm || categoryFilter !== "All" || locationFilter !== "All") && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm("");
+                setCategoryFilter("All");
+                setLocationFilter("All");
+              }}
+              className="text-sm font-semibold text-emerald-700 hover:text-emerald-900"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+      </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          Error loading listings: {error}
+        </div>
       )}
 
-      <div>
-        {filteredListings.map((listing) => (
-          <article
-            key={listing.id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              padding: "16px",
-              marginTop: "12px",
-            }}
-          >
-            {listing.imageUrls?.length > 0 && (
-              <img
-                src={listing.imageUrls[0]}
-                alt={listing.title}
-                style={{
-                  width: "100%",
-                  maxHeight: "240px",
-                  objectFit: "cover",
-                  borderRadius: "8px",
-                }}
-              />
-            )}
-            <h3>
-  <button
-    type="button"
-    onClick={() => setSelectedListingId(listing.id)}
-    style={{
-      border: "none",
-      background: "none",
-      padding: 0,
-      fontSize: "inherit",
-      fontWeight: "bold",
-      cursor: "pointer",
-      textAlign: "left",
-    }}
-  >
-    {listing.title}
-  </button>
-</h3>
-            <p>{listing.description}</p>
-            <strong>
-              KSh {Number(listing.price).toLocaleString("en-KE")}
-            </strong>
-            <p>Category: {listing.category}</p>
-            <p>Location: {listing.location}</p>
-            <p>
-             Seller:{" "}
-            <button
-             type="button"
-             onClick={() => setSelectedSellerId(listing.sellerId)}
-             disabled={!listing.sellerId}
-             style={{
-             border: "none",
-             background: "none",
-              color: "blue",
-             textDecoration: "underline",
-              cursor: "pointer",
-             padding: 0,
-    }}
-  >
-    {listing.sellerName || "View seller"}
-  </button>
-</p>
-            
-{user ? (
-  getWhatsAppLink(listing) ? (
-    <a
-      href={getWhatsAppLink(listing)}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <button type="button">
-        Contact Seller on WhatsApp
-      </button>
-    </a>
-  ) : (
-    <p>Seller WhatsApp number unavailable.</p>
-  )
-) : (
-  <button
-    type="button"
-    onClick={() => {
-      window.location.href = "/login";
-    }}
-  >
-    Sign in to Contact Seller
-  </button>
-)}
+      {!error && filteredListings.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-gray-300 px-5 py-14 text-center">
+          <div className="mb-3 text-4xl">🔎</div>
+          <h3 className="font-bold text-gray-900">No listings found</h3>
+          <p className="mt-2 text-sm text-gray-500">
+            Try another search term, category, or location.
+          </p>
+        </div>
+      )}
 
-          </article>
-        ))}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {filteredListings.map((listing) => {
+          const whatsappLink = getWhatsAppLink(listing);
+
+          return (
+            <article
+              key={listing.id}
+              className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition duration-200 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg"
+            >
+              <button
+                type="button"
+                onClick={() => setSelectedListingId(listing.id)}
+                className="relative block w-full overflow-hidden bg-gray-100 text-left"
+                aria-label={`View ${listing.title}`}
+              >
+                <div className="aspect-[4/3] w-full">
+                  {listing.imageUrls?.length > 0 ? (
+                    <img
+                      src={listing.imageUrls[0]}
+                      alt={listing.title}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-sm text-gray-400">
+                      No photo available
+                    </div>
+                  )}
+                </div>
+
+                {listing.category && (
+                  <span className="absolute left-3 top-3 max-w-[85%] truncate rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm">
+                    {listing.category}
+                  </span>
+                )}
+              </button>
+
+              <div className="flex flex-1 flex-col p-4">
+                <button
+                  type="button"
+                  onClick={() => setSelectedListingId(listing.id)}
+                  className="line-clamp-2 min-h-12 text-left text-base font-bold leading-6 text-gray-900 hover:text-emerald-700"
+                >
+                  {listing.title || "Untitled listing"}
+                </button>
+
+                <p className="mt-2 text-xl font-extrabold text-emerald-700">
+                  KSh {Number(listing.price || 0).toLocaleString("en-KE")}
+                </p>
+
+                <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
+                  <span aria-hidden="true">📍</span>
+                  <span className="truncate">
+                    {listing.location || "Location not specified"}
+                  </span>
+                </div>
+
+                <div className="mt-2 border-t border-gray-100 pt-3">
+                  <p className="text-xs text-gray-500">Seller</p>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSellerId(listing.sellerId)}
+                    disabled={!listing.sellerId}
+                    className="mt-1 max-w-full truncate text-sm font-semibold text-gray-800 hover:text-emerald-700 disabled:cursor-default"
+                  >
+                    {listing.sellerName || "Gataka Connect Seller"}
+                  </button>
+                </div>
+
+                <div className="mt-4">
+                  {user ? (
+                    whatsappLink ? (
+                      <a
+                        href={whatsappLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full rounded-xl bg-emerald-700 px-3 py-2.5 text-center text-sm font-bold text-white transition hover:bg-emerald-800"
+                      >
+                        Contact on WhatsApp
+                      </a>
+                    ) : (
+                      <p className="rounded-lg bg-gray-50 px-3 py-2 text-center text-xs text-gray-500">
+                        WhatsApp number unavailable
+                      </p>
+                    )
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.location.href = "/login";
+                      }}
+                      className="w-full rounded-xl bg-emerald-700 px-3 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-800"
+                    >
+                      Sign in to contact seller
+                    </button>
+                  )}
+                </div>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
