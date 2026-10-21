@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Keep Firebase security rules local; do not commit them.
+/firestore.rules
