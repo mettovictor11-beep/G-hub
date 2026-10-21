@@ -59,6 +59,8 @@ service cloud.firestore {
         && request.resource.data.buyerId == request.auth.uid
         && request.resource.data.sellerId != request.auth.uid
         && request.resource.data.listingId is string
+        && request.resource.data.buyerName is string
+        && request.resource.data.sellerName is string
         && request.resource.data.participantIds is list
         && request.resource.data.participantIds.size() == 2
         && request.resource.data.participantIds.hasAll([
@@ -75,7 +77,9 @@ service cloud.firestore {
           "listingId",
           "listingTitle",
           "buyerId",
+          "buyerName",
           "sellerId",
+          "sellerName",
           "participantIds",
           "createdAt",
           "updatedAt"
