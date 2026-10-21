@@ -1,12 +1,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  addDoc,
   collection,
+  doc,
+  getDoc,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { db, auth } from "./firebase";
 
@@ -16,6 +19,7 @@ function Chat({ conversationId, otherUserName, onBack }) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [readMarkerField, setReadMarkerField] = useState("");
   const latestMessageRef = useRef(null);
 
   useEffect(() => {
@@ -24,6 +28,45 @@ function Chat({ conversationId, otherUserName, onBack }) {
 
   useEffect(() => {
     if (!conversationId) return undefined;
+
+    let cancelled = false;
+
+    async function loadReadMarkerField() {
+      const user = auth.currentUser;
+
+      if (!user) return;
+
+      try {
+        const conversationSnapshot = await getDoc(
+          doc(db, "conversations", conversationId)
+        );
+
+        if (!conversationSnapshot.exists()) {
+          throw new Error("Conversation not found.");
+        }
+
+        const conversation = conversationSnapshot.data();
+        const field =
+          conversation.buyerId === user.uid
+            ? "buyerLastReadAt"
+            : conversation.sellerId === user.uid
+              ? "sellerLastReadAt"
+              : null;
+
+        if (!field) {
+          throw new Error("You are not a participant in this conversation.");
+        }
+
+        if (!cancelled) setReadMarkerField(field);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Could not prepare message read status:", err);
+          setError(`Could not update message read status: ${err.message}`);
+        }
+      }
+    }
+
+    loadReadMarkerField();
 
     const messagesQuery = query(
       collection(
@@ -54,8 +97,22 @@ function Chat({ conversationId, otherUserName, onBack }) {
       }
     );
 
-    return unsubscribe;
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, [conversationId]);
+
+  useEffect(() => {
+    if (!conversationId || !readMarkerField || loading) return;
+
+    updateDoc(doc(db, "conversations", conversationId), {
+      [readMarkerField]: serverTimestamp(),
+    }).catch((err) => {
+      console.error("Could not mark messages as read:", err);
+      setError(`Could not update message read status: ${err.message}`);
+    });
+  }, [conversationId, messages, readMarkerField, loading]);
 
   if (!conversationId) {
     return (
@@ -88,19 +145,21 @@ function Chat({ conversationId, otherUserName, onBack }) {
     setError("");
 
     try {
-      await addDoc(
-        collection(
-          db,
-          "conversations",
-          conversationId,
-          "messages"
-        ),
-        {
-          text,
-          senderId: user.uid,
-          createdAt: serverTimestamp(),
-        }
-      );
+      const conversationRef = doc(db, "conversations", conversationId);
+      const messageRef = doc(collection(conversationRef, "messages"));
+      const batch = writeBatch(db);
+
+      batch.set(messageRef, {
+        text,
+        senderId: user.uid,
+        createdAt: serverTimestamp(),
+      });
+      batch.update(conversationRef, {
+        latestMessageSenderId: user.uid,
+        updatedAt: serverTimestamp(),
+      });
+
+      await batch.commit();
 
       setNewMessage("");
     } catch (err) {

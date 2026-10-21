@@ -4,7 +4,10 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
+  limit,
   onSnapshot,
+  orderBy,
   query,
   where,
 } from "firebase/firestore";
@@ -44,30 +47,49 @@ function Inbox({ onBack, onOpenChat }) {
               const savedName = isBuyer
                 ? conversation.sellerName
                 : conversation.buyerName;
+              let profileName = "";
 
-              if (savedName || !otherUserId) {
-                return {
-                  ...conversation,
-                  otherUserName: savedName || (isBuyer ? "Seller" : "Buyer"),
-                  otherUserId,
-                };
+              if (!savedName && otherUserId) {
+                const profileSnapshot = await getDoc(
+                  doc(db, "profiles", otherUserId)
+                );
+                const profile = profileSnapshot.exists()
+                  ? profileSnapshot.data()
+                  : null;
+                profileName =
+                  profile?.profileType === "business"
+                    ? profile.businessName
+                    : profile?.displayName;
               }
 
-              const profileSnapshot = await getDoc(
-                doc(db, "profiles", otherUserId)
+              const latestMessageSnapshot = await getDocs(
+                query(
+                  collection(db, "conversations", conversation.id, "messages"),
+                  orderBy("createdAt", "desc"),
+                  limit(1)
+                )
               );
-              const profile = profileSnapshot.exists()
-                ? profileSnapshot.data()
-                : null;
-              const profileName =
-                profile?.profileType === "business"
-                  ? profile.businessName
-                  : profile?.displayName;
+              const latestMessage = latestMessageSnapshot.empty
+                ? null
+                : latestMessageSnapshot.docs[0].data();
+              const lastReadAt = isBuyer
+                ? conversation.buyerLastReadAt
+                : conversation.sellerLastReadAt;
+              const isUnread = Boolean(
+                latestMessage &&
+                  latestMessage.senderId !== user.uid &&
+                  (!lastReadAt ||
+                    (latestMessage.createdAt?.toMillis?.() ?? 0) >
+                      (lastReadAt.toMillis?.() ?? 0))
+              );
 
               return {
                 ...conversation,
-                otherUserName: profileName || (isBuyer ? "Seller" : "Buyer"),
+                otherUserName:
+                  savedName || profileName || (isBuyer ? "Seller" : "Buyer"),
                 otherUserId,
+                latestMessageText: latestMessage?.text || "",
+                isUnread,
               };
             })
           );
@@ -115,6 +137,10 @@ function Inbox({ onBack, onOpenChat }) {
     );
   }
 
+  const unreadCount = conversations.filter(
+    (conversation) => conversation.isUnread
+  ).length;
+
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6 sm:py-8">
       <section className="mx-auto max-w-3xl">
@@ -136,6 +162,15 @@ function Inbox({ onBack, onOpenChat }) {
           <p className="mt-2 text-sm text-gray-500">
             Keep track of conversations about marketplace listings.
           </p>
+          {unreadCount > 0 && (
+            <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 text-sm font-semibold text-emerald-800">
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 rounded-full bg-emerald-600"
+              />
+              {unreadCount} unread {unreadCount === 1 ? "conversation" : "conversations"}
+            </p>
+          )}
         </div>
 
         {error && (
@@ -188,12 +223,30 @@ function Inbox({ onBack, onOpenChat }) {
                     {(otherUserName || "S").charAt(0)}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                      Chat with {otherUserName}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                        Chat with {otherUserName}
+                      </p>
+                      {conversation.isUnread && (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+                          New message
+                        </span>
+                      )}
+                    </div>
                     <h2 className="mt-1 truncate font-bold text-gray-900">
                       {conversation.listingTitle || "Marketplace listing"}
                     </h2>
+                    {conversation.latestMessageText && (
+                      <p
+                        className={`mt-1 truncate text-sm ${
+                          conversation.isUnread
+                            ? "font-semibold text-gray-700"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {conversation.latestMessageText}
+                      </p>
+                    )}
                   </div>
                 </div>
 

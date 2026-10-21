@@ -85,7 +85,32 @@ service cloud.firestore {
           "updatedAt"
         ]);
 
-      allow update, delete: if false;
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.participantIds
+        && (
+          (
+            request.auth.uid == resource.data.buyerId
+            && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(["buyerLastReadAt"])
+            && request.resource.data.buyerLastReadAt == request.time
+          )
+          || (
+            request.auth.uid == resource.data.sellerId
+            && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(["sellerLastReadAt"])
+            && request.resource.data.sellerLastReadAt == request.time
+          )
+          || (
+            request.resource.data.diff(resource.data).affectedKeys()
+              .hasAll(["latestMessageSenderId", "updatedAt"])
+            && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(["latestMessageSenderId", "updatedAt"])
+            && request.resource.data.latestMessageSenderId == request.auth.uid
+            && request.resource.data.updatedAt == request.time
+          )
+        );
+
+      allow delete: if false;
 
       match /messages/{messageId} {
         function isParticipant() {

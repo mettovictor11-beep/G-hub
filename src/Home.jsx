@@ -2,7 +2,10 @@
 import { useEffect, useState } from "react";
 import {
   collection,
+  getDocs,
+  limit,
   onSnapshot,
+  orderBy,
   query,
   where,
 } from "firebase/firestore";
@@ -22,6 +25,7 @@ function Home({ user, onLogout }) {
   const [myListings, setMyListings] = useState([]);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState("");
+  const [unreadState, setUnreadState] = useState(null);
 
   useEffect(() => {
     if (!user || !showSellerCenter) return undefined;
@@ -35,6 +39,70 @@ function Home({ user, onLogout }) {
 
     return () => window.cancelAnimationFrame(frame);
   }, [user, showSellerCenter]);
+
+  useEffect(() => {
+    if (!user?.uid) return undefined;
+
+    const conversationsQuery = query(
+      collection(db, "conversations"),
+      where("participantIds", "array-contains", user.uid)
+    );
+
+    return onSnapshot(
+      conversationsQuery,
+      async (snapshot) => {
+        try {
+          const unreadStatuses = await Promise.all(
+            snapshot.docs.map(async (conversationDoc) => {
+              const conversation = conversationDoc.data();
+              const isBuyer = conversation.buyerId === user.uid;
+              const lastReadAt = isBuyer
+                ? conversation.buyerLastReadAt
+                : conversation.sellerLastReadAt;
+              let latestMessageSenderId = conversation.latestMessageSenderId;
+              let latestMessageAt = conversation.updatedAt;
+
+              if (!latestMessageSenderId) {
+                const latestMessageSnapshot = await getDocs(
+                  query(
+                    collection(
+                      db,
+                      "conversations",
+                      conversationDoc.id,
+                      "messages"
+                    ),
+                    orderBy("createdAt", "desc"),
+                    limit(1)
+                  )
+                );
+                const latestMessage = latestMessageSnapshot.docs[0]?.data();
+                latestMessageSenderId = latestMessage?.senderId;
+                latestMessageAt = latestMessage?.createdAt;
+              }
+
+              return Boolean(
+                latestMessageSenderId &&
+                  latestMessageSenderId !== user.uid &&
+                  latestMessageAt &&
+                  latestMessageAt.toMillis() >
+                    (lastReadAt?.toMillis?.() ?? 0)
+              );
+            })
+          );
+
+          setUnreadState({
+            uid: user.uid,
+            count: unreadStatuses.filter(Boolean).length,
+          });
+        } catch (error) {
+          console.error("Could not load unread message count:", error);
+        }
+      },
+      (error) => {
+        console.error("Could not load unread message count:", error);
+      }
+    );
+  }, [user?.uid]);
 
   useEffect(() => {
     const uid = user?.uid;
@@ -129,9 +197,20 @@ function Home({ user, onLogout }) {
                 <button
                   type="button"
                   onClick={() => navigate("/inbox")}
-                  className="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                  aria-label={`Messages${
+                    unreadState?.uid === user.uid && unreadState.count > 0
+                      ? `, ${unreadState.count} unread`
+                      : ""
+                  }`}
+                  className="relative inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
                 >
                   Messages
+                  {unreadState?.uid === user.uid &&
+                    unreadState.count > 0 && (
+                      <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[11px] font-bold leading-4 text-white">
+                        {unreadState.count > 99 ? "99+" : unreadState.count}
+                      </span>
+                    )}
                 </button>
 
                 <button
