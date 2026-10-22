@@ -1,4 +1,4 @@
-# G-Hub Connect 🛍️
+# G-Hub Connect 
 
 ### A Community-Based Online Marketplace
 
