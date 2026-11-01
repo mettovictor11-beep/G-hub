@@ -10,6 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import Icon from "./Icon";
 
 const categories = [
   "Phones & Accessories",
@@ -270,7 +271,7 @@ function MyListings() {
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-gray-600">Sold</p>
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
-                <span className="text-lg font-bold">✓</span>
+                <Icon className="h-5 w-5" name="check" />
               </span>
             </div>
             <p className="mt-3 text-3xl font-bold text-gray-900">

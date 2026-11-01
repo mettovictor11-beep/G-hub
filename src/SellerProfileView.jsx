@@ -10,6 +10,7 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import Icon from "./Icon";
 
 function SellerProfileView({ sellerId, onBack }) {
   const [profile, setProfile] = useState(null);
@@ -110,8 +111,8 @@ function SellerProfileView({ sellerId, onBack }) {
           ← Back to listings
         </button>
         <div className="rounded-3xl border border-gray-200 bg-white px-6 py-12 text-center shadow-sm">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-2xl">
-            👤
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+            <Icon className="h-7 w-7" name="user" />
           </div>
           <h2 className="mt-4 text-xl font-bold text-gray-900">
             Seller profile not found
@@ -194,8 +195,8 @@ function SellerProfileView({ sellerId, onBack }) {
 
           <div className="mt-6 grid gap-4 border-t border-gray-100 pt-5 sm:grid-cols-2">
             <div className="flex items-start gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600" aria-hidden="true">
-                📍
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
+                <Icon className="h-5 w-5" name="pin" />
               </span>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -207,8 +208,8 @@ function SellerProfileView({ sellerId, onBack }) {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600" aria-hidden="true">
-                🛍️
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
+                <Icon className="h-5 w-5" name="shoppingBag" />
               </span>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -294,7 +295,7 @@ function SellerProfileView({ sellerId, onBack }) {
                   </p>
                 )}
                 <p className="mt-3 text-sm text-gray-500">
-                  <span aria-hidden="true">📍</span>{" "}
+                  <Icon className="mr-1 inline h-4 w-4" name="pin" />{" "}
                   {listing.location || "Location not specified"}
                 </p>
 

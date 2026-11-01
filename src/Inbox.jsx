@@ -12,6 +12,7 @@ import {
   where,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import Icon from "./Icon";
 
 function Inbox({ onBack, onOpenChat }) {
   const [conversations, setConversations] = useState([]);
@@ -184,8 +185,8 @@ function Inbox({ onBack, onOpenChat }) {
 
         {!error && conversations.length === 0 && (
           <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-2xl">
-              💬
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+              <Icon className="h-7 w-7" name="chat" />
             </div>
             <h2 className="mt-4 text-lg font-bold text-gray-900">
               No conversations yet

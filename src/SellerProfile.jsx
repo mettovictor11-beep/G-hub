@@ -7,6 +7,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db, auth } from "./firebase";
+import Icon from "./Icon";
 
 const locations = [
   "Gataka",
@@ -168,8 +169,11 @@ function SellerProfile() {
       <section className="my-2">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-2xl">
-              {profile.profileType === "business" ? "🏬" : "👤"}
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+              <Icon
+                className="h-7 w-7"
+                name={profile.profileType === "business" ? "store" : "user"}
+              />
             </div>
 
             <div>
@@ -183,7 +187,7 @@ function SellerProfile() {
               </div>
 
               <p className="mt-2 text-sm text-gray-500">
-                <span aria-hidden="true">📍</span> {profile.location}
+                <Icon className="mr-1 inline h-4 w-4" name="pin" /> {profile.location}
               </p>
             </div>
           </div>
@@ -196,7 +200,7 @@ function SellerProfile() {
             }}
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
           >
-            <span aria-hidden="true">✏️</span> Edit Profile
+            <Icon className="h-4 w-4" name="edit" /> Edit Profile
           </button>
         </div>
 
@@ -246,8 +250,8 @@ function SellerProfile() {
   return (
     <section className="my-2">
       <div className="mb-6 flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-2xl">
-          🏪
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+          <Icon className="h-6 w-6" name="store" />
         </div>
 
         <div>
@@ -279,7 +283,7 @@ function SellerProfile() {
                   : "border-gray-200 bg-white hover:border-gray-300"
               }`}
             >
-              <span className="text-xl">👤</span>
+              <Icon className="h-6 w-6 text-emerald-700" name="user" />
               <span className="mt-2 block font-bold text-gray-900">
                 Personal seller
               </span>
@@ -300,7 +304,7 @@ function SellerProfile() {
                   : "border-gray-200 bg-white hover:border-gray-300"
               }`}
             >
-              <span className="text-xl">🏬</span>
+              <Icon className="h-6 w-6 text-emerald-700" name="store" />
               <span className="mt-2 block font-bold text-gray-900">
                 Business seller
               </span>

@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import ListingDetails from "./ListingDetails";
+import Icon from "./Icon";
 
 function ListingFeed({ user, initialListingId = null }) {
   const [listings, setListings] = useState([]);
@@ -246,7 +247,7 @@ function ListingFeed({ user, initialListingId = null }) {
 
       {!error && filteredListings.length === 0 && (
         <div className="rounded-2xl border border-dashed border-gray-300 px-5 py-14 text-center">
-          <div className="mb-3 text-4xl">🔎</div>
+          <Icon className="mx-auto mb-3 h-10 w-10 text-gray-400" name="search" />
           <h3 className="font-bold text-gray-900">No listings found</h3>
           <p className="mt-2 text-sm text-gray-500">
             Try another search term, category, or location.
@@ -305,7 +306,7 @@ function ListingFeed({ user, initialListingId = null }) {
                 </p>
 
                 <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
-                  <span aria-hidden="true">📍</span>
+                  <Icon className="h-4 w-4 shrink-0" name="pin" />
                   <span className="truncate">
                     {listing.location || "Location not specified"}
                   </span>

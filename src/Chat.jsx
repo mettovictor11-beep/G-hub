@@ -12,6 +12,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db, auth } from "./firebase";
+import Icon from "./Icon";
 
 function Chat({ conversationId, otherUserName, onBack }) {
   const [messages, setMessages] = useState([]);
@@ -205,8 +206,8 @@ function Chat({ conversationId, otherUserName, onBack }) {
 
           {!loading && messages.length === 0 && (
             <div className="flex h-full min-h-52 flex-col items-center justify-center text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-2xl">
-                💬
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                <Icon className="h-7 w-7" name="chat" />
               </div>
               <h2 className="mt-4 font-semibold text-gray-900">
                 Start the conversation

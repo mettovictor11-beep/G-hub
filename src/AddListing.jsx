@@ -7,6 +7,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import Icon from "./Icon";
 
 const MAX_LISTING_IMAGES = 3;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
@@ -300,9 +301,7 @@ function AddListing({ onListingAdded }) {
             htmlFor="listing-images"
             className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center transition hover:border-emerald-500 hover:bg-emerald-50/50"
           >
-            <span className="mb-2 text-3xl" aria-hidden="true">
-              📷
-            </span>
+            <Icon className="mb-2 h-8 w-8" name="camera" />
             <span className="font-bold text-gray-800">
               Choose product photos
             </span>
